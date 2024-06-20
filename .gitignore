@@ -1,0 +1,30 @@
+# Node.js 관련
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 환경 설정 파일
+.env
+
+# 디버그 출력
+debug.log
+logs/
+
+# 시스템 파일
+.DS_Store
+Thumbs.db
+
+# IDE 및 편집기 파일
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS 파일
+.DS_Store
+Thumbs.db
+
+# 빌드 출력
+dist/
+build/
