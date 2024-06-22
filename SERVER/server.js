@@ -1,4 +1,6 @@
 const mongoclient = require('mongodb').MongoClient;
+const ObjId = require('mongodb').ObjectId;
+
 const express = require('express');
 const app = express();
 const url = 'mongodb+srv://admin:1234@cluster0.gn2soht.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
@@ -7,10 +9,12 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended:true}));
 app.set('view engine','ejs');
 app.set('views','./views');
+//동시성을 위한 정적 파일
+app.use(express.static("public"));
 
 let mydb;
 var mysql = require("mysql");
-const { ObjectId } = require('mongodb');
+
 var conn = mysql.createConnection({
     host: "localhost",
     user: "root",
@@ -33,17 +37,29 @@ app.get('/list',function(req,res){
     mydb.collection('post').find().toArray().then(result => {
         console.log(result);
         res.render('list.ejs', { data : result });
-    })
-    // res.sendFile(__dirname + '/list.html');
-    
+    })    
+});
+
+// 삭제
+app.post('/delete',function(req,res){
+    console.log(req.body._id);
+    req.body._id = new ObjId(req.body._id);
+
+    mydb.collection('post').deleteOne(req.body)
+    .then(result => {
+        console.log("삭제완료");
+        //삭제후 상태 보내기
+        res.status(200).send();
+    })    
 });
 
 app.get('/enter',function(req,res){
-    res.sendFile(__dirname + '/enter.html');
+    res.render('enter.ejs')
 });
+
 //수정 조회
 app.get('/edit/:id',function(req,res){
-    req.params.id = new ObjectId(req.params.id);
+    req.params.id = new ObjId(req.params.id);
     mydb
     .collection("post")
     .findOne({_id: req.params.id})
@@ -58,7 +74,7 @@ app.post('/edit',function(req,res){
     console.log(req.body.title);
     console.log(req.body.content);
     console.log(req.body.someDate);
-    req.body.id = new ObjectId(req.body.id);
+    req.body.id = new ObjId(req.body.id);
     mydb
     .collection("post")//updateOne(수정식별자, 수정값)
     .updateOne({_id : req.body.id}, {$set : {title : req.body.title, content : req.body.content, date : req.body.someDate}})
@@ -75,7 +91,8 @@ app.post('/edit',function(req,res){
 
 //
 app.get('/content/:id',function(req,res){
-    req.params.id = new ObjectId(req.params.id);
+
+    req.params.id = new ObjId(req.params.id);
     mydb
     .collection("post")
     .findOne({_id: req.params.id})
@@ -104,7 +121,10 @@ app.post('/save',function(req, res){
     //     if(err) throw err;
     //     console.log('데이터 추가 성공');
     // });
-    res.send('데이터 추가 성공')
+    
+
+    //저장후 list페이지 이동
+    res.redirect("/list")
     
 })
 
@@ -119,6 +139,8 @@ app.post('/save',function(req, res){
 
 
 app.get('/', function(req, res){
-    res.sendFile(__dirname + '/index.html');
+    // res.sendFile(__dirname + '/index.ejs');
+    res.render('index.ejs');
+    
 }
 )
